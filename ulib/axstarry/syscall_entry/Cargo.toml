@@ -10,7 +10,20 @@ description = "ArceOS user program library for linux apps with posix_syscall"
 [features]
 default = ["monolithic"]
 
-monolithic = ["arceos_api/monolithic", "axfeat/monolithic", "paging", "fs", "multitask", "irq"]
+fd = []
+
+ip = ["syscall_net/ip"]
+
+net = ["syscall_net"]
+
+monolithic = [
+    "arceos_api/monolithic",
+    "axfeat/monolithic",
+    "paging",
+    "fs",
+    "multitask",
+    "irq",
+]
 
 img = ["axruntime/img"]
 

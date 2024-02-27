@@ -8,8 +8,10 @@ authors = ["Youjie Zheng <zyj578335934@gmail.com>"]
 
 [features]
 
-default = ["ip", "arceos_api/net", "axfeat/net"]
-
+#default = ["ip", "arceos_api/net", "axfeat/net"]
+# ip: just for loopback
+# if you want support for network. don't use ip
+default = ["arceos_api/net", "axfeat/net"]
 # Networking
 ip = ["axnet/ip"]
 dns = []

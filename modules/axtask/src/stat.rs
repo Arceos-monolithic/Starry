@@ -55,6 +55,8 @@ pub struct TimeStat {
 pub trait SignalCaller {
     /// Handles interrupt requests for the given IRQ number.
     fn send_signal(tid: isize, signum: isize);
+    /// Return true if current task have a signal pending.
+    fn current_have_signal() -> bool;
 }
 
 #[allow(unused)]

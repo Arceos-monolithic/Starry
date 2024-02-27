@@ -9,6 +9,8 @@ use axio::SeekFrom;
 use axlog::{debug, info};
 use axprocess::current_process;
 use axprocess::link::{create_link, deal_with_path, real_path, AT_FDCWD};
+#[cfg(feature = "net")]
+use syscall_net::Socket;
 use syscall_utils::{IoVec, SyscallError, SyscallResult};
 
 use crate::ctype::pipe::make_pipe;
@@ -542,11 +544,7 @@ pub fn syscall_readlinkat(
 /// 如果buf为NULL，则返回符号链接文件的长度
 /// 如果buf不为NULL，则将符号链接文件的内容写入buf中
 /// 如果写入的内容超出了buf_size则直接截断
-pub fn syscall_readlink(
-    path: *const u8,
-    buf: *mut u8,
-    bufsiz: usize,
-) -> SyscallResult {
+pub fn syscall_readlink(path: *const u8, buf: *mut u8, bufsiz: usize) -> SyscallResult {
     syscall_readlinkat(AT_FDCWD, path, buf, bufsiz)
 }
 

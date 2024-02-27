@@ -20,8 +20,9 @@ use spinlock::SpinNoIrq;
 extern crate log;
 
 use axhal::{
+    arch::flush_tlb,
     mem::{memory_regions, phys_to_virt, PhysAddr, VirtAddr, PAGE_SIZE_4K},
-    paging::{MappingFlags, PageSize, PageTable}, arch::flush_tlb,
+    paging::{MappingFlags, PageSize, PageTable},
 };
 use xmas_elf::symbol_table::Entry;
 
@@ -243,7 +244,7 @@ impl MemorySet {
                 Ok(xmas_elf::sections::SectionData::Rela64(data)) => data,
                 _ => panic!("Invalid data in .rela.plt section"),
             };
-            if elf.find_section_by_name(".dynsym").is_some(){
+            if elf.find_section_by_name(".dynsym").is_some() {
                 let dyn_sym_table = match elf
                     .find_section_by_name(".dynsym")
                     .expect("Dynamic Symbol Table not found for .rela.plt section")
@@ -289,7 +290,6 @@ impl MemorySet {
                     }
                 }
             }
-            
         }
 
         info!("Relocating done");
@@ -339,18 +339,13 @@ impl MemorySet {
                 &mut self.page_table,
             )
             .unwrap(),
-            None => {
-                match backend {
-                    Some(backend) => MapArea::new_lazy(vaddr, num_pages, flags, Some(backend), &mut self.page_table),
-                    None => MapArea::new_alloc(
-                        vaddr,
-                        num_pages,
-                        flags,
-                        None,
-                        None,
-                        &mut self.page_table,
-                    )
-                    .unwrap()
+            None => match backend {
+                Some(backend) => {
+                    MapArea::new_lazy(vaddr, num_pages, flags, Some(backend), &mut self.page_table)
+                }
+                None => {
+                    MapArea::new_alloc(vaddr, num_pages, flags, None, None, &mut self.page_table)
+                        .unwrap()
                 }
             },
             // None => MapArea::new_lazy(vaddr, num_pages, flags, backend, &mut self.page_table)
@@ -626,14 +621,13 @@ impl MemorySet {
                 Ok(())
             }
             None => {
-                #[cfg(target_arch="riscv64")]
+                #[cfg(target_arch = "riscv64")]
                 let sepc = riscv::register::sepc::read();
-                #[cfg(target_arch="x86_64")]
+                #[cfg(target_arch = "x86_64")]
                 let sepc = "not supported now for x86";
                 error!(
                     "Page fault address {:?} not found in memory set sepc: {:X?}",
-                    addr,
-                    sepc
+                    addr, sepc
                 );
                 Err(AxError::BadAddress)
             }

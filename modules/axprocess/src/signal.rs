@@ -325,4 +325,8 @@ impl SignalCaller for SignalCallerImpl {
     fn send_signal(tid: isize, signum: isize) {
         send_signal_to_thread(tid, signum).unwrap();
     }
+
+    fn current_have_signal() -> bool {
+        current_process().have_signals().is_some()
+    }
 }

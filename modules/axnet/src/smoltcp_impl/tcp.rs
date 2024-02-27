@@ -307,19 +307,19 @@ impl TcpSocket {
         let handle = unsafe { self.handle.get().read().unwrap() };
         self.block_on(|| {
             SOCKET_SET.with_socket_mut::<tcp::Socket, _, _>(handle, |socket| {
-                if !socket.is_active() {
-                    // not open
-                    ax_err!(ConnectionRefused, "socket recv() failed")
-                } else if !socket.may_recv() {
-                    // connection closed
-                    Ok(0)
-                } else if socket.recv_queue() > 0 {
+                if socket.recv_queue() > 0 {
                     // data available
                     // TODO: use socket.recv(|buf| {...})
                     let len = socket
                         .recv_slice(buf)
                         .map_err(|_| ax_err_type!(BadState, "socket recv() failed"))?;
                     Ok(len)
+                } else if !socket.is_active() {
+                    // not open
+                    ax_err!(ConnectionRefused, "socket recv() failed")
+                } else if !socket.may_recv() {
+                    // connection closed
+                    Ok(0)
                 } else {
                     // no more data
                     Err(AxError::WouldBlock)
@@ -343,19 +343,19 @@ impl TcpSocket {
         let handle = unsafe { self.handle.get().read().unwrap() };
         self.block_on(|| {
             SOCKET_SET.with_socket_mut::<tcp::Socket, _, _>(handle, |socket| {
-                if !socket.is_active() {
-                    // not open
-                    ax_err!(ConnectionRefused, "socket recv() failed")
-                } else if !socket.may_recv() {
-                    // connection closed
-                    Ok(0)
-                } else if socket.recv_queue() > 0 {
+                if socket.recv_queue() > 0 {
                     // data available
                     // TODO: use socket.recv(|buf| {...})
                     let len = socket
                         .recv_slice(buf)
                         .map_err(|_| ax_err_type!(BadState, "socket recv() failed"))?;
                     Ok(len)
+                } else if !socket.is_active() {
+                    // not open
+                    ax_err!(ConnectionRefused, "socket recv() failed")
+                } else if !socket.may_recv() {
+                    // connection closed
+                    Ok(0)
                 } else {
                     // no more data
                     if current_ticks() > expire_at {
@@ -596,6 +596,10 @@ impl TcpSocket {
             f()
         } else {
             loop {
+                #[cfg(feature = "signal")]
+                if crate_interface::call_interface!(SignalCaller::current_have_signal) {
+                    return Err(AxError::Interrupted);
+                }
                 SOCKET_SET.poll_interfaces();
                 match f() {
                     Ok(t) => return Ok(t),

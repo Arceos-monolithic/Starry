@@ -1,7 +1,10 @@
 //! 相关系统调用的具体实现
 extern crate alloc;
 use super::socket::*;
-use core::slice::{from_raw_parts, from_raw_parts_mut};
+use core::{
+    panic,
+    slice::{from_raw_parts, from_raw_parts_mut},
+};
 
 use alloc::sync::Arc;
 
@@ -483,7 +486,8 @@ pub fn syscall_get_sock_opt(
             };
 
             if option == TcpSocketOption::TCP_INFO {
-                return Err(SyscallError::ENOPROTOOPT);
+                // TODO:support the protocal
+                return Ok(0);
             }
 
             option.get(socket, opt_value, opt_len);

@@ -181,11 +181,7 @@ pub fn syscall_ppoll(
 /// 实现ppoll系统调用
 ///
 /// 其中timeout是一段相对时间，需要计算出相对于当前时间戳的绝对时间戳
-pub fn syscall_poll(
-    ufds: *mut PollFd,
-    nfds: usize,
-    timeout_msecs: usize
-) -> SyscallResult {
+pub fn syscall_poll(ufds: *mut PollFd, nfds: usize, timeout_msecs: usize) -> SyscallResult {
     let process = current_process();
 
     let start: VirtAddr = (ufds as usize).into();
@@ -201,7 +197,8 @@ pub fn syscall_poll(
             fds.push(*(ufds.add(i)));
         }
     }
-    let expire_time = current_ticks() as usize + TimeVal::from_micro(timeout_msecs).to_ticks() as usize;
+    let expire_time =
+        current_ticks() as usize + TimeVal::from_micro(timeout_msecs).to_ticks() as usize;
 
     let (set, ret_fds) = ppoll(fds, expire_time);
     // 将得到的fd存储到原先的指针中
@@ -263,7 +260,7 @@ pub fn syscall_select(
     readfds: *mut usize,
     writefds: *mut usize,
     exceptfds: *mut usize,
-    timeout: *const TimeSecs
+    timeout: *const TimeSecs,
 ) -> SyscallResult {
     syscall_pselect6(nfds, readfds, writefds, exceptfds, timeout, 0)
 }
@@ -351,6 +348,7 @@ pub fn syscall_pselect6(
         if current_ticks() as usize > expire_time {
             return Ok(0);
         }
+        // TODO: fix this and use mask to ignore specific signal
         #[cfg(feature = "signal")]
         if process.have_signals().is_some() {
             return Err(SyscallError::EINTR);

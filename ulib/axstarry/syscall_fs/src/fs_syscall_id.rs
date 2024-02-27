@@ -1,7 +1,7 @@
 //! 记录该模块使用到的系统调用 id
 //!
 //!
-//! 
+//!
 #[cfg(target_arch = "riscv64")]
 numeric_enum_macro::numeric_enum! {
 #[repr(usize)]
@@ -107,6 +107,7 @@ numeric_enum_macro::numeric_enum! {
         SELECT = 23,
         PSELECT6 = 270,
         READLINK = 89,
+        CHMOD = 90,
         PREADLINKAT = 267,
         FSTAT = 5,
         LSTAT = 6,
@@ -115,5 +116,7 @@ numeric_enum_macro::numeric_enum! {
         UTIMENSAT = 280,
         RENAMEAT2 = 264,
         COPYFILERANGE = 326,
+        EPOLL_CREATE1 = 291,
+        EPOLL_PWAIT = 281,
     }
 }

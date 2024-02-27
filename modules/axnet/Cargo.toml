@@ -15,6 +15,8 @@ smoltcp = []
 # 启用ip协议与否
 ip = []
 
+signal = []
+
 default = ["smoltcp"]
 
 [dependencies]
@@ -29,6 +31,7 @@ axsync = { path = "../axsync" }
 axtask = { path = "../axtask" }
 axdriver = { path = "../axdriver", features = ["net"] }
 axio = { path = "../../crates/axio" }
+crate_interface = { path = "../../crates/crate_interface" }
 
 [dependencies.smoltcp]
 git = "https://github.com/rcore-os/smoltcp.git"
@@ -39,8 +42,14 @@ features = [
   "medium-ethernet",
   "medium-ip",
   "proto-ipv4",
-  "socket-raw", "socket-icmp", "socket-udp", "socket-tcp", "socket-dns",
-  # "fragmentation-buffer-size-65536", "proto-ipv4-fragmentation",
-  # "reassembly-buffer-size-65536", "reassembly-buffer-count-32",
+  "socket-raw",
+  "socket-icmp",
+  "socket-udp",
+  "socket-tcp",
+  "socket-dns",      
+  # "fragmentation-buffer-size-65536", 
+  # "proto-ipv4-fragmentation",  
+  # "reassembly-buffer-size-65536", 
+  # "reassembly-buffer-count-32",
   # "assembler-max-segment-count-32",
 ]

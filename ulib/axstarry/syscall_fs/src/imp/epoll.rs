@@ -88,6 +88,10 @@ pub fn syscall_epoll_wait(
     let max_event = max_event as usize;
     let process = current_process();
     let start: VirtAddr = (event as usize).into();
+    // FIXME: this is a temporary solution
+    // the memory will out of mapped memory if the max_event is too large
+    // maybe give the max_event a limit is a better solution
+    let max_event = core::cmp::min(max_event, 400);
     let end = start + max_event * core::mem::size_of::<EpollEvent>();
     if process.manual_alloc_range_for_lazy(start, end).is_err() {
         return Err(SyscallError::EFAULT);
@@ -109,6 +113,7 @@ pub fn syscall_epoll_wait(
     } else {
         usize::MAX
     };
+    drop(fd_table);
     let ret_events = epoll_file.epoll_wait(timeout);
     if ret_events.is_err() {
         return Err(SyscallError::EINTR);
@@ -122,4 +127,14 @@ pub fn syscall_epoll_wait(
         }
     }
     Ok(real_len as isize)
+}
+
+pub fn syscall_epoll_pwait(
+    epfd: i32,
+    event: *mut EpollEvent,
+    max_event: i32,
+    timeout: i32,
+    _sigset_t: usize,
+) -> SyscallResult {
+    syscall_epoll_wait(epfd, event, max_event, timeout)
 }
