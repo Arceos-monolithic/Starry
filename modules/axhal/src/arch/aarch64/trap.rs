@@ -110,7 +110,8 @@ fn handle_el1h_64_sync_exception(tf: &mut TrapFrame) {
         | Some(ESR_EL1::EC::Value::InstrAbortCurrentEL) => {
             let iss = esr.read(ESR_EL1::ISS);
             panic!(
-                "EL1 Page Fault @ {:#x}, FAR={:#x}, ISS={:#x}:\n{:#x?}",
+                "task {:p} EL1 Page Fault @ {:#x}, FAR={:#x}, ISS={:#x}:\n{:#x?}",
+                crate::cpu::current_task_ptr::<u8>(),
                 tf.elr,
                 FAR_EL1.get(),
                 iss,
@@ -152,7 +153,7 @@ fn handle_el0t_64_sync_exception(tf: &mut TrapFrame) {
 
     match esr.read_as_enum(ESR_EL1::EC) {
         Some(ESR_EL1::EC::Value::SVC64) => {
-            warn!("task: {:p} into svc {}", crate::cpu::current_task_ptr::<u8>(), tf.r[8]);
+            info!("task: {:p} into svc {}", crate::cpu::current_task_ptr::<u8>(), tf.r[8]);
             enable_irqs();
             let result = handle_syscall(
                 tf.r[8],

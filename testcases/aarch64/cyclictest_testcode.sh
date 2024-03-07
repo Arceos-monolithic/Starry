@@ -13,7 +13,7 @@ run_cyclictest NO_STRESS_P1 "-a -i 1000 -t1 -n -p99 -D 1s -q"
 run_cyclictest NO_STRESS_P8 "-a -i 1000 -t8 -n -p99 -D 1s -q"
 
 echo "====== start hackbench ======"
-./hackbench -l 100000000 &
+./hackbench -p -T -f 10 -l 100000000 &
 hackbench_pid=$!
 
 sleep 1
