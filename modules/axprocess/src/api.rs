@@ -18,7 +18,6 @@ use axsync::Mutex;
 use axtask::{current, yield_now, CurrentTask, TaskId, TaskState, IDLE_TASK, RUN_QUEUE};
 
 use crate::flags::WaitStatus;
-use crate::futex::clear_wait;
 use crate::loader::Loader;
 use crate::process::{Process, PID2PC, TID2TASK};
 #[cfg(feature = "signal")]
@@ -57,7 +56,7 @@ pub fn exit_current_task(exit_code: i32) -> ! {
     let curr_id = current_task.id().as_u64();
 
     info!("exit task id {} with code {}", curr_id, exit_code);
-    clear_wait(
+    process.clear_wait(
         if current_task.is_leader() {
             process.pid()
         } else {

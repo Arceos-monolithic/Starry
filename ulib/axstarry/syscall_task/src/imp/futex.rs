@@ -6,7 +6,7 @@ use axhal::mem::VirtAddr;
 use axlog::info;
 use axprocess::{
     current_process, current_task,
-    futex::{FutexRobustList, FUTEX_WAIT_TASK, WAIT_FOR_FUTEX},
+    futex::{FutexRobustList, WAIT_FOR_FUTEX},
     yield_now_task,
 };
 use axtask::TaskState;
@@ -23,7 +23,8 @@ use syscall_utils::{FutexFlags, RobustList, SyscallError, SyscallResult, TimeSec
 // /
 // / 不考虑检查操作
 pub fn futex_requeue(wake_num: u32, move_num: usize, src_addr: VirtAddr, dst_addr: VirtAddr) {
-    let mut futex_wait_task = FUTEX_WAIT_TASK.lock();
+    let process = current_process();
+    let mut futex_wait_task = process.futex_wait_task.lock();
     if !futex_wait_task.contains_key(&src_addr) {
         return;
     }
@@ -60,16 +61,16 @@ pub fn futex(
 ) -> Result<usize, SyscallError> {
     let flag = FutexFlags::new(futex_op);
     let current_task = current_task();
+    let process = current_process();
     match flag {
         FutexFlags::WAIT => {
-            let process = current_process();
             if process.manual_alloc_for_lazy(vaddr).is_ok() {
                 let real_futex_val = unsafe { (vaddr.as_usize() as *const u32).read_volatile() };
                 info!("real val: {}, expected val: {}", real_futex_val, val);
                 if real_futex_val != val {
                     return Err(SyscallError::EAGAIN);
                 }
-                let mut futex_wait_task = FUTEX_WAIT_TASK.lock();
+                let mut futex_wait_task = process.futex_wait_task.lock();
                 let wait_list = if futex_wait_task.contains_key(&vaddr) {
                     futex_wait_task.get_mut(&vaddr).unwrap()
                 } else {
@@ -79,8 +80,6 @@ pub fn futex(
                 wait_list.push_back((current_task.as_task_ref().clone(), val));
                 // // 输出每一个键值对应的vec的长度
                 drop(futex_wait_task);
-                // info!("timeout: {}", timeout as u64);
-                // debug!("ready wait!");
                 if timeout == 0 {
                     yield_now_task();
                 } else {
@@ -97,7 +96,7 @@ pub fn futex(
         }
         FutexFlags::WAKE => {
             // // 当前任务释放了锁，所以不需要再次释放
-            let mut futex_wait_task = FUTEX_WAIT_TASK.lock();
+            let mut futex_wait_task = process.futex_wait_task.lock();
             if futex_wait_task.contains_key(&vaddr) {
                 let wait_list = futex_wait_task.get_mut(&vaddr).unwrap();
                 // info!("now task: {}", wait_list.len());
@@ -136,7 +135,7 @@ pub fn futex(
 
 pub fn check_dead_wait() {
     let process = current_process();
-    let mut futex_wait_task = FUTEX_WAIT_TASK.lock();
+    let mut futex_wait_task = process.futex_wait_task.lock();
     for (vaddr, wait_list) in futex_wait_task.iter_mut() {
         if process.manual_alloc_for_lazy(*vaddr).is_ok() {
             let real_futex_val = unsafe { ((*vaddr).as_usize() as *const u32).read_volatile() };

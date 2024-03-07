@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
-use alloc::{collections::BTreeMap, string::String};
+use alloc::{collections::BTreeMap, string::String, collections::VecDeque};
 use axerrno::{AxError, AxResult};
 use axfs::api::{FileIO, OpenFlags};
 use axhal::arch::{write_page_table_root0, TrapFrame};
@@ -65,6 +65,10 @@ pub struct Process {
     /// 用来存储线程对共享变量的使用地址
     /// 具体使用交给了用户空间
     pub robust_list: Mutex<BTreeMap<u64, FutexRobustList>>,
+
+    #[cfg(feature = "futex")]
+    /// vec中的元素分别是任务指针,对应存储时的futex变量的值
+    pub futex_wait_task: Mutex<BTreeMap<VirtAddr, VecDeque<(AxTaskRef, u32)>>>, 
 }
 
 impl Process {
@@ -144,6 +148,8 @@ impl Process {
             #[cfg(feature = "signal")]
             signal_modules: Mutex::new(BTreeMap::new()),
             robust_list: Mutex::new(BTreeMap::new()),
+            #[cfg(feature = "futex")]
+            futex_wait_task: Mutex::new(BTreeMap::new()),
         }
     }
     /// 根据给定参数创建一个新的进程，作为应用程序初始进程
@@ -594,3 +600,33 @@ impl Process {
             .find_signal()
     }
 }
+
+#[cfg(feature = "futex")]
+impl Process {
+    /// 退出的时候清空指针
+    ///
+    /// 若当前线程是主线程，代表进程退出，此时传入的id是进程id，要清除所有进程下的线程
+    ///
+    /// 否则传入的id是线程id
+    pub fn clear_wait(&self, id: u64, leader: bool) {
+        let mut futex_wait_task = self.futex_wait_task.lock();
+    
+        if leader {
+            // 清空所有所属进程为指定进程的线程
+            futex_wait_task.iter_mut().for_each(|(_, tasks)| {
+                // tasks.drain_filter(|task| task.get_process_id() == id);
+                tasks.retain(|(task, _)| task.get_process_id() != id);
+            });
+        } else {
+            futex_wait_task.iter_mut().for_each(|(_, tasks)| {
+                // tasks.drain_filter(|task| task.id().as_u64() == id);
+                tasks.retain(|(task, _)| task.id().as_u64() != id)
+            });
+        }
+    
+        // 如果一个共享变量不会被线程所使用了，那么直接把他移除
+        // info!("clean pre keys: {:?}", futex_wait_task.keys());
+        futex_wait_task.retain(|_, tasks| !tasks.is_empty());
+    }
+}
+
