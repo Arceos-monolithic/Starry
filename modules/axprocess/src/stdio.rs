@@ -1,7 +1,7 @@
 use axerrno::{AxError, AxResult};
 use axfs::api::port::{
-    ConsoleWinSize, FileExt, FileIO, FileIOType, OpenFlags, TCGETS, TIOCGPGRP, TIOCGWINSZ,
-    TIOCSPGRP, FIONBIO, FIOCLEX,
+    ConsoleWinSize, FileExt, FileIO, FileIOType, OpenFlags, FIOCLEX, FIONBIO, TCGETS, TIOCGPGRP,
+    TIOCGWINSZ, TIOCSPGRP,
 };
 use axhal::console::{getchar, write_bytes};
 use axio::{Read, Seek, SeekFrom, Write};
@@ -132,7 +132,7 @@ impl FileIO for Stdin {
                 }
                 Ok(0)
             }
-            FIOCLEX => Ok(0),            
+            FIOCLEX => Ok(0),
             _ => Err(AxError::Unsupported),
         }
     }
@@ -376,5 +376,5 @@ impl FileIO for Stderr {
             FIOCLEX => Ok(0),
             _ => Err(AxError::Unsupported),
         }
-    }    
+    }
 }

@@ -5,11 +5,9 @@ use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
-use axerrno::{AxResult, AxError};
+use axerrno::{AxError, AxResult};
+use axfs::api::port::{ConsoleWinSize, FIOCLEX, TCGETS, TIOCGPGRP, TIOCGWINSZ, TIOCSPGRP};
 use axfs::api::{File, FileIO, FileIOType, Kstat, OpenFlags, Read, Seek, SeekFrom, Write};
-use axfs::api::port::{
-    ConsoleWinSize, TCGETS, TIOCGPGRP, TIOCGWINSZ, TIOCSPGRP, FIOCLEX
-};
 use axlog::{debug, warn};
 
 use crate::{new_file, normal_file_mode, StMode, TimeSecs};
