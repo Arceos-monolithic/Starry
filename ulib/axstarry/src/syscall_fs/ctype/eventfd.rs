@@ -169,6 +169,7 @@ mod tests {
 
     #[test]
     fn test_read_with_bad_input() {
+        use axerrno::AxError;
         let event_fd = EventFd::new(42, 0);
         let event_fd_val = 0u32;
         let result = event_fd.read(&mut event_fd_val.to_ne_bytes());
@@ -179,7 +180,7 @@ mod tests {
     fn test_write() {
         let event_fd = EventFd::new(42, 0);
         let val = 12u64;
-        event_fd.write(&val.to_ne_bytes()[0..core::mem::size_of::<u64>()]);
+        let _ = event_fd.write(&val.to_ne_bytes()[0..core::mem::size_of::<u64>()]);
 
         let event_fd_val = 0u64;
         event_fd.read(&mut event_fd_val.to_ne_bytes()).unwrap();
