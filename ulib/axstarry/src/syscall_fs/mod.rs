@@ -52,6 +52,7 @@ pub fn fs_syscall(syscall_id: fs_syscall_id::FsSyscallId, args: [usize; 6]) -> S
         COPYFILERANGE => syscall_copyfilerange(args),
         LINKAT => sys_linkat(args),
         UNLINKAT => syscall_unlinkat(args),
+        SYMLINKAT => Ok(0),
         UTIMENSAT => syscall_utimensat(args),
         EPOLL_CREATE => syscall_epoll_create1(args),
         EPOLL_CTL => syscall_epoll_ctl(args),

@@ -449,8 +449,10 @@ pub fn syscall_ioctl(args: [usize; 6]) -> SyscallResult {
     }
 
     let file = fd_table[fd].clone().unwrap();
-    let _ = file.ioctl(request, argp);
-    Ok(0)
+    match file.ioctl(request, argp) {
+        Ok(ret) => Ok(ret),
+        Err(_) => Ok(0),
+    }
 }
 
 /// 53

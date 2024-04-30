@@ -5,10 +5,12 @@ use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
-use axerrno::AxResult;
+use axerrno::{AxResult, AxError};
 use axfs::api::{File, FileIO, FileIOType, Kstat, OpenFlags, Read, Seek, SeekFrom, Write};
-
-use axlog::debug;
+use axfs::api::port::{
+    ConsoleWinSize, TCGETS, TIOCGPGRP, TIOCGWINSZ, TIOCSPGRP, FIOCLEX
+};
+use axlog::{debug, warn};
 
 use crate::{new_file, normal_file_mode, StMode, TimeSecs};
 use axprocess::link::get_link_count;
@@ -174,6 +176,34 @@ impl FileIO for FileDesc {
         // 把文件指针复原，因为获取len的时候指向了尾部
         self.seek(SeekFrom::Start(now_pos)).unwrap();
         now_pos != len
+    }
+
+    fn ioctl(&self, request: usize, data: usize) -> AxResult<isize> {
+        match request {
+            TIOCGWINSZ => {
+                let winsize = data as *mut ConsoleWinSize;
+                unsafe {
+                    *winsize = ConsoleWinSize::default();
+                }
+                // 当处理python脚本时, isatty会调用ioctl, 需要返回非0值才能进入脚本模式
+                Ok(1)
+            }
+            TCGETS | TIOCSPGRP => {
+                warn!("filedesc TCGETS | TIOCSPGRP, pretend to be tty.");
+                // pretend to be tty
+                Ok(0)
+            }
+
+            TIOCGPGRP => {
+                warn!("filedesc TIOCGPGRP, pretend to be have a tty process group.");
+                unsafe {
+                    *(data as *mut u32) = 0;
+                }
+                Ok(0)
+            }
+            FIOCLEX => Ok(0),
+            _ => Err(AxError::Unsupported),
+        }
     }
 }
 
