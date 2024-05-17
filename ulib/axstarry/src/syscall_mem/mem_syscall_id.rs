@@ -39,6 +39,7 @@ numeric_enum_macro::numeric_enum! {
         SHMAT = 30,
         BRK = 12,
         MUNMAP = 11,
+        MREMAP = 25,
         MMAP = 9,
         MSYNC = 26,
         MPROTECT = 10,
