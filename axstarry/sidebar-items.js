@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_dir","create_link","init_current_dir","new_file","println","read_file","recycle_user_process","wait_pid","write","yield_now_task"],"static":["PID2PC"],"struct":["FilePath","Process"],"type":["FileFlags","SyscallError","SyscallResult"]};

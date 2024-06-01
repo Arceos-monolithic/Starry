@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bootargs","cpus","fdt_size","find_compatible_node","get_fdt_ptr","init_fdt_ptr","machin_name","memory_nodes","pcsi"],"mod":["kernel_nodes"],"struct":["Cpu","MachineFdt"]};
