@@ -16,6 +16,14 @@ impl Instant {
         Instant(arceos_api::time::ax_current_time())
     }
 
+    /// Creates an `Instant` from the specified number of seconds and nanoseconds.
+    pub fn from_nanos(nanos: u64) -> Instant {
+        const NANOS_PER_SEC: u32 = 1_000_000_000;
+        let secs = nanos / NANOS_PER_SEC as u64;
+        let nanos = (nanos % NANOS_PER_SEC as u64) as u32;
+        Instant(AxTimeValue::new(secs, nanos))
+    }
+
     /// Returns the amount of time elapsed from another instant to this one,
     /// or zero duration if that instant is later than this one.
     ///

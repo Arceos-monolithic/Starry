@@ -288,6 +288,12 @@ pub enum FutexFlags {
     Wake,
     /// 将等待 uaddr 的线程移动到 uaddr2
     Requeue,
+    /// 同Wait, 多了一个bitset参数，表示等待的位
+    WaitBitset,
+    /// 同Wake, 多了一个bitset参数，表示等待的位
+    WakeBitset,
+    /// 设置墙上时间
+    RealTime,
     /// 不支持的操作
     Unsupported,
 }
@@ -299,6 +305,9 @@ impl FutexFlags {
             0 => FutexFlags::Wait,
             1 => FutexFlags::Wake,
             3 => FutexFlags::Requeue,
+            9 => FutexFlags::WaitBitset,
+            10 => FutexFlags::WakeBitset,
+            256 => FutexFlags::RealTime,
             _ => FutexFlags::Unsupported,
         }
     }

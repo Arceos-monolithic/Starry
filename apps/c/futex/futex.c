@@ -9,7 +9,7 @@ int main() {
     int *futex_ptr = &futex_var;
 
     // 唤醒等待在 futex 上的线程（私有唤醒）
-    syscall(SYS_futex, futex_ptr, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+    syscall(SYS_futex, futex_ptr, FUTEX_WAKE_BITSET_PRIVATE, 1, NULL, NULL, 0);
 
     return 0;
 }

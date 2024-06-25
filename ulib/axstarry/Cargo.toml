@@ -83,6 +83,7 @@ axlibc = { path = "../../ulib/axlibc", features = ["fp_simd", "alloc", "fs", "fd
 axconfig = { path = "../../modules/axconfig" }
 axsync = { path = "../../modules/axsync", optional = true }
 axmem = { path = "../../modules/axmem" }
+axstd = { path = "../../ulib/axstd" }
 
 crate_interface = { path = "../../crates/crate_interface" }
 eventfd = { path = "../../crates/eventfd" }
