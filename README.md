@@ -1,5 +1,7 @@
 # Starry
 
+NO LONGER MAINTAINED. You can check for the latest stable maintenance version in https://github.com/Starry-OS/StarryOS.
+
 ## Structure
 
 ![avatar](./doc/figures/Starry.svg)
